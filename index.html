@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>八人淘汰賽</title>
+    <style>
+        body { text-align: center; font-family: Arial; }
+        img { width: 200px; height: 250px; margin: 20px; border-radius: 10px; }
+        button {
+            width: 200px; height: 40px; margin: 10px;
+            border-radius: 10px; border: none;
+            background-color: chocolate; color: black; font-size: 18px;
+        }
+        button:hover { background-color: aqua; }
+    </style>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+</head>
+<body>
+
+<h1>二選一淘汰賽</h1>
+<h2 id="progress"></h2>
+<div id="game">
+    <img id="imgA">
+    <img id="imgB">
+    <br>
+    <button onclick="choose(0)" id="btnA">選 A</button>
+    <button onclick="choose(1)" id="btnB">選 B</button>
+</div>
+
+<h2 id="result"></h2>
+<div id="ranking"></div>
+<button id="restartBtn" style="display:none;" onclick="restartGame()">重新開始</button>
+<script>
+let players = [
+    "img/派大星.png",
+    "img/海綿寶寶.png",
+    "img/小蝸.png",
+    "img/皮老闆.png",
+    "img/珊迪.jpg",
+    "img/蟹老闆.jpg",
+    "img/章魚哥.png",
+    "img/蝦霸.jpg"
+];
+
+// ⭐ 洗牌函式（固定寫法）
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+// ⭐ 遊戲一開始先打亂
+shuffle(players);
+
+let matchCount = 0;
+const totalMatches = 7;
+let roundPlayers = [...players];
+let nextRound = [];
+let index = 0;
+
+let semifinalsLosers = []; // 四強輸家（決定 3、4 名）
+let finalLoser = null;     // 冠軍戰的輸家
+let champion = null;       // 第一名
+
+function showImages() {
+    updateProgress();
+    if (roundPlayers.length === 1) {
+        champion = roundPlayers[0];
+        document.getElementById("game").style.display = "none";
+        document.getElementById("result").innerText = "比賽結束！";
+
+        showRanking();
+        return;
+    }
+
+    document.getElementById("imgA").src = roundPlayers[index];
+    document.getElementById("imgB").src = roundPlayers[index + 1];
+}
+function updateProgress() {
+    document.getElementById("progress").innerText =
+        `目前比賽：${matchCount} / ${totalMatches}`;
+}
+
+function choose(choice) {
+    let A = roundPlayers[index];
+    let B = roundPlayers[index + 1];
+    let winner = (choice === 0) ? A : B;
+    let loser = (choice === 0) ? B : A;
+
+    // 四強賽（roundPlayers 長度為 4）
+    if (roundPlayers.length === 4) {
+        semifinalsLosers.push(loser);
+    }
+
+    // 決賽（roundPlayers 長度為 2）
+    if (roundPlayers.length === 2) {
+        finalLoser = loser;
+    }
+
+    nextRound.push(winner);
+    index += 2;
+    matchCount++;
+    updateProgress();
+
+    if (index >= roundPlayers.length) {
+        roundPlayers = nextRound;
+        nextRound = [];
+        index = 0;
+    }
+
+    showImages();
+}
+
+function showRanking() {
+    let third = semifinalsLosers[0];
+    let fourth = semifinalsLosers[1];
+
+    let rankingHTML =` 
+        <p>🥇 第一名：</p><img src="${champion}" width="200"><br><br>
+        <p>🥈 第二名：</p><img src="${finalLoser}" width="200"><br><br>
+        <p>🥉 第三名：</p><img src="${third}" width="200"><br><br>
+        <p>🏅 第四名：</p><img src="${fourth}" width="200"><br><br>
+    `;
+
+    document.getElementById("ranking").innerHTML = rankingHTML;
+    document.getElementById("restartBtn").style.display = "inline-block";
+}
+function restartGame() {
+    shuffle(players);
+    matchCount = 0;
+    roundPlayers = [...players];
+    nextRound = [];
+    index = 0;
+    semifinalsLosers = [];
+    finalLoser = null;
+    champion = null;
+
+    // 顯示遊戲畫面，隱藏結果
+    document.getElementById("game").style.display = "block";
+    document.getElementById("result").innerText = "";
+    document.getElementById("ranking").innerHTML = "";
+    document.getElementById("restartBtn").style.display = "none";
+
+    // 重新開始
+    showImages();
+}
+showImages();
+</script>
+
+</body>
+</html>
+
